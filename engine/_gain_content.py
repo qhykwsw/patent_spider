@@ -29,8 +29,9 @@ class GainContent(engine.SpiderEngine):
         # pages_all是所有的页面数
         self.pages_all = 0
         for result in self.results[self.start:self.end]:
-            page_size = result['page_size']
-            for pagenow in range(1, page_size+1):
+            page_start = min(result['patent'].keys())
+            page_end = max(result['patent'].keys())
+            for pagenow in range(page_start, page_end+1):
                 self.pages_all += 1
                 if result['patent'][pagenow] != []:
                     self.spider_hassuccessed += 1
@@ -49,8 +50,11 @@ class GainContent(engine.SpiderEngine):
             if page_size == 1:
                 idx += 1
                 continue
-            pagenow = 1
-            while pagenow <= page_size:
+            page_start = min(self.results[idx]['patent'].keys())
+            page_end = max(self.results[idx]['patent'].keys())                
+            pagenow = page_start
+            # print(f"爬取{self.page_start}到{self.page_end}页的内容")
+            while pagenow <= page_end:
                 if self.results[idx]['patent'][pagenow] == []:
                     if ipNeedChange:
                         try:

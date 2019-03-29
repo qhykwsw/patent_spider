@@ -199,6 +199,60 @@ def concentrate_pkl(pklfile, num=8):
     with open(pklfile, 'wb') as f:
         pickle.dump(results, f)
 
+# 对一家包含了很多专利的公司进行切分，注意该pickle文件只能包含这单独一家
+def split_one_company_pkl(pklfile, num=4, start=1):
+    with open(pklfile, 'rb') as f:
+        result = pickle.load(f)[0]
+        company = result['company']
+        page_size = result['page_size']
+        patents_all = result['patent']
+    patents_keep = {k: v for k, v in patents_all.items() if k < start}
+    result_keep = [{'company':company,'page_size':page_size,'patent':patents_keep}]
+
+    if start != 1:
+        with open(pklfile.split('.')[0] + '_keep.pkl', 'wb') as f:
+            pickle.dump(result_keep, f)
+
+    step = math.floor((len(patents_all)-start+1) / num)
+
+    for i in range(num):
+        pklfile_split = pklfile.split('.')[0] + '_' + str(i) + '.pkl'
+        begin = i * step + start
+        if i != num-1:
+            end = (i + 1) * step + start
+        else:
+            end = len(patents_all) + 1
+        patents_split = {k: v for k, v in patents_all.items() if k >= begin and k < end}
+        result_split = [{'company':company,'page_size':page_size,'patent':patents_split}]
+
+        with open(pklfile_split, 'wb') as f:
+            pickle.dump(result_split, f)
+
+# 对上一步切分出去的同一家公司的专利进行整合
+def concentrate_one_company_pkl(pklfile, num=4):
+    patents = {}
+
+    pklfile_keep = pklfile.split('.')[0] + '_keep.pkl'
+    if os.path.exists(pklfile_keep):
+        with open(pklfile_keep, 'rb') as f:
+            result_keep = pickle.load(f)[0]
+            company = result_keep['company']
+            page_size = result_keep['page_size']
+            patents_keep = result_keep['patent']
+
+        patents.update(patents_keep)
+
+    for i in range(num):
+        pklfile_split = pklfile.split('.')[0] + '_' + str(i) + '.pkl'
+        with open(pklfile_split, 'rb') as f:
+            patents_split = pickle.load(f)[0]['patent']
+        patents.update(patents_split)
+
+    results = [{'company':company,'page_size':page_size,'patent':patents}]
+
+    with open(pklfile, 'wb') as f:
+        pickle.dump(results, f)
+        
 def main():
     excelfile='C:\\Files\\Documents\\apollo项目组\\国防科工局成果转化目录\\海淀区的企业名称.xlsx'
     # patent_class = 'publish'
