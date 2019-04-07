@@ -122,9 +122,7 @@ class GainContent(engine.SpiderEngine):
                         pickle.dump(self.results, f)
 
                     t2 = time.time()
-                    lasttime = countlasttime((t2 - t1), self.spider_all,
-                                             self.spider_hassuccessed,
-                                             self.pages_all)
+                    lasttime = countlasttime((t2 - t1), self.spider_all, self.spider_hassuccessed, self.pages_all)
                     log.info(
                         f' # 耗时{secondstohour(t2-t1)}, 成功爬取了{self.spider_success}/{self.spider_all}/{self.pages_all-self.spider_hassuccessed}张页面, 预计剩余{lasttime}\n'
                     )
@@ -138,7 +136,7 @@ class GainContent(engine.SpiderEngine):
                 else:
                     log.info(' # {}-{}-{}: {} {}\n'.format(
                         idx + 1, pagenow, flag + 1, company,
-                        yellow('has successed')))
+                        yellow('has succeeded')))
                     flag = 0
                     if pagenow == page_end:
                         idx += 1

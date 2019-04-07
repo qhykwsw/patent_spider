@@ -1,14 +1,12 @@
 import pickle
 from bs4 import BeautifulSoup
-import os
 import time
-import sys
 import logging as log
 from . import engine
 import random
-import requests
 from utils.time_conversion import secondstohour, countlasttime
 from utils.change_color import red, green, yellow
+
 
 class GainPageSize(engine.SpiderEngine):
     def __init__(self, config):
@@ -22,7 +20,8 @@ class GainPageSize(engine.SpiderEngine):
 
         super(GainPageSize, self).__init__(config)
 
-        self.end = len(self.results) if self.end == None or self.end > len(self.results) else self.end
+        self.end = len(self.results) if self.end is None or self.end > len(
+            self.results) else self.end
 
         # spider_hassuccessed是程序刚开始时已经成功爬取的页数
         self.spider_hassuccessed = 0
@@ -53,7 +52,9 @@ class GainPageSize(engine.SpiderEngine):
                     try:
                         ip = next(ip_gene)
                         # print(ip)
-                        log.info(f" # {idx+1}-{pagenow}-{flag+1}: 提取IP成功: {ip['http']}")
+                        log.info(
+                            f" # {idx+1}-{pagenow}-{flag+1}: 提取IP成功: {ip['http']}"
+                        )
                     except:
                         log.error(f"# {idx+1}-{pagenow}-{flag+1}: 提取IP失败")
                         ip_gene = self.get_ip()
@@ -65,7 +66,7 @@ class GainPageSize(engine.SpiderEngine):
 
                 # 获取html
                 html = self.get_html(idx, flag, applicant=company, ip=ip, strSources=self.strSources, pagenow=pagenow)
-                if html == False:
+                if html is False:
                     ipNeedChange = True
                     flag = 0
                     continue
@@ -78,26 +79,35 @@ class GainPageSize(engine.SpiderEngine):
                 try:
                     # 尝试找到页面中的页码最大序号
                     main_tb = soup.find("div", class_="next")
-                    posion = main_tb.find('input')['onkeypress']
-                    start = posion.find('zl_tz')+6
-                    page_size = int(posion[start:-1])
+                    possion = main_tb.find('input')['onkeypress']
+                    start = possion.find('zl_tz') + 6
+                    page_size = int(possion[start:-1])
                     self.results[idx]['page_size'] = page_size
                     # 顺便把首页内容也写入
-                    self.results[idx]['patent'][1] = self.prase_page_cp_boxes(soup)
-                except :
-                    if soup.find("h1", class_="head_title") == None:
-                        log.error(f"# {idx+1}-{pagenow}-{flag+1}: 没有您要查询的结果, {company} {ip['http']}")
+                    self.results[idx]['patent'][1] = self.prase_page_cp_boxes(
+                        soup)
+                except:
+                    if soup.find("h1", class_="head_title") is None:
+                        log.error(
+                            f"# {idx+1}-{pagenow}-{flag+1}: 没有您要查询的结果, {company} {ip['http']}"
+                        )
                         ipNeedChange = False
                         flag += 1
                         # 如果对同一个页面连续尝试次数超过设置的trytimes,则判定该页爬取失败
                         if flag >= self.trytimes:
                             self.spider_all += 1
-                            log.info(' # {}-{}-{}: {} {}\n'.format(idx+1, pagenow, flag, company, red('failed')))
+                            log.info(' # {}-{}-{}: {} {}\n'.format(
+                                idx + 1, pagenow, flag, company,
+                                red('failed')))
                             idx += 1
                             flag = 0
                             t2 = time.time()
-                            lasttime = countlasttime((t2-t1), self.spider_all, self.spider_hassuccessed, self.pages_all)
-                            log.info(f' # 耗时{secondstohour(t2-t1)}, 成功爬取了{self.spider_success}/{self.spider_all}/{self.pages_all-self.spider_hassuccessed}家公司, 预计剩余{lasttime}\n')
+                            lasttime = countlasttime(
+                                (t2 - t1), self.spider_all,
+                                self.spider_hassuccessed, self.pages_all)
+                            log.info(
+                                f' # 耗时{secondstohour(t2-t1)}, 成功爬取了{self.spider_success}/{self.spider_all}/{self.pages_all-self.spider_hassuccessed}家公司, 预计剩余{lasttime}\n'
+                            )
                             ipNeedChange = True
                         continue
                     else:
@@ -106,10 +116,12 @@ class GainPageSize(engine.SpiderEngine):
                         ipNeedChange = True
                         continue
 
-                log.info(' # {}-{}-{}: {}, {} 保存到文件 {}\n'.format(idx+1, pagenow, flag+1, company, green('success'), ip['http']))
+                log.info(' # {}-{}-{}: {}, {} 保存到文件 {}\n'.format(
+                    idx + 1, pagenow, flag + 1, company, green('success'),
+                    ip['http']))
 
-                self.spider_success+=1
-                self.spider_all+=1
+                self.spider_success += 1
+                self.spider_all += 1
 
                 # 每成功爬取一个页面就保存到文件
                 with open(self.pklfile, 'wb') as f:
@@ -118,15 +130,16 @@ class GainPageSize(engine.SpiderEngine):
                 t2 = time.time()
 
                 # 计算还需要消耗的时间
-                lasttime = countlasttime((t2-t1), self.spider_all, self.spider_hassuccessed, self.pages_all)
-                log.info(f' # 耗时{secondstohour(t2-t1)}, 成功爬取了{self.spider_success}/{self.spider_all}/{self.pages_all-self.spider_hassuccessed}家公司, 预计剩余{lasttime}\n')
+                lasttime = countlasttime((t2 - t1), self.spider_all, self.spider_hassuccessed, self.pages_all)
+                log.info(
+                    f' # 耗时{secondstohour(t2-t1)}, 成功爬取了{self.spider_success}/{self.spider_all}/{self.pages_all-self.spider_hassuccessed}家公司, 预计剩余{lasttime}\n'
+                )
 
                 ipNeedChange = True
                 idx += 1
                 flag = 0
             else:
-                log.info(' # {}-{}-{}: {} {}\n'.format(idx+1, pagenow, flag+1, company, yellow('has successed')))
+                log.info(
+                    ' # {}-{}-{}: {} {}\n'.format(idx + 1, pagenow, flag + 1, company, yellow('has succeeded')))
                 idx += 1
                 flag = 0
-
-
