@@ -7,15 +7,14 @@ from openpyxl.styles import Font, Alignment, Side, Border
 def main():
     results_conversion = {"title":2,"地址":3,"分类号":4,"申请号":5,"申请人":9,"专利权人":9,"发明人":10,"设计人":10,"申请日":12,"abstract":13,"申请公布日":15,"授权公告日":15}
     
-    # patent_class = 'publish'
+    patent_class = 'publish'
     # patent_class = 'authorization'
-    patent_class = 'utility_model'
+    # patent_class = 'utility_model'
     # patent_class = 'design'
 
     excelfile='C:\\Files\\Documents\\apollo项目组\\国防科工局成果转化目录\\专利信息爬取_' + patent_class + '.xlsx'
     pklfile_step1 = 'results\\' + patent_class + '\\' + patent_class + '_step1.pkl'
     pklfile_step2 = 'results\\' + patent_class + '\\' + patent_class + '_step2.pkl'
-    pklfile_filter = 'results\\' + patent_class + '\\' + patent_class + '_filter.pkl'
 
     with open(pklfile_step2, 'rb') as f:
         results = pickle.load(f)
@@ -63,7 +62,7 @@ def main():
                     except KeyError as e:
                         pass
                 init_row += 1
-                if init_row % 5000 == 0:
+                if init_row % 10000 == 0:
                     print(f"已经写入了{init_row}行")
 
     # 设置单元格边框
